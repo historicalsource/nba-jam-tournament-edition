@@ -1,0 +1,206 @@
+*THE T/Z-UNIT SYSTEM SPECIFIC EQUATES
+*.Last mod - 11/30/92 12:09
+
+YUNIT	.equ	1
+TUNIT	.equ	1	;YUNIT also on
+TUNITDB	.equ	0	;TUNIT debugging
+TUNIT2	.equ	1	;TUNIT also on
+
+DEBUG	.equ	0	;0 or 1
+IMGVIEW	.equ	0	;0 or 1
+
+PAL64	.equ	0	;1 if 64x64 pals
+
+*FOLLOWING SYMBOLS DON'T ACTUALLY WORK, YET! (GNP - 1/15/92)
+GERMAN	.equ	0	;IF 1 THEN GERMAN TEXT
+PRINTER	.equ	0	;IF 1 THEN PRINTER IS INSTALLED
+
+FULLPRICE .equ	1	;IF 1, INSTALL ALL COINAGE MODES
+
+
+;PIXBLT stuff
+PXSIZE		.equ	8
+SCRN_PTCH	.equ	512*PXSIZE
+
+;System memory map
+SCREEN	.equ	0		;START OF SCREEN MEMORY
+SCRNE	.equ	200000h		;END OF SCREEN+1
+SCRATCH	.equ	1000000h	;START OF SCRATCH
+STCKST	.equ	10FFFF0h	;TOP OF STACK
+CMOS	.equ	1400000h	;START OF CMOS RAM
+CMOSWE	.equ	CMOS+0ffff0h	;Write enable
+
+	.if	TUNIT
+COLRAM	.equ	1800000h
+	.elseif	YUNIT
+COLRAM	.equ	1810000h	;Color ram
+	.else
+COLRAM	.equ	1800000h
+	.endif
+CYCOLORS .equ	COLRAM+3E0h	;COLORS 62 AND 63 (LAST TWO IN PAL!)
+
+CMAPSEL	.equ	1a80080h	;COLOR MAP SELECT (0-15)
+	.if	TUNIT2
+SWITCH	.equ	1600000h	;I/O WIDGET BOARD
+COINS	.equ	1600010h
+SWITCH2	.equ	1600020h
+DIPSWITCH .equ	1600030h	;DIP SWITCHES
+WATCHDOG .equ	1d81070h
+COIN_COUNTERS	.EQU	1D01020H	;COIN COUNTER DRIVERS GNP 1/16/93
+	.else
+SWITCH	.equ	1c00000h	;I/O WIDGET BOARD
+COINS	.equ	1c00010h
+SWITCH2	.equ	1c00020h
+DIPSWITCH .equ	1c00030h	;DIP SWITCHES
+	.endif
+	.if	TUNIT2
+SOUND	.equ	1d01030h	;Auto strobe
+SOUNDR	.equ	1d81030h	;Auto strobe (with wait state)
+SOUNDIRQ .equ	1d00000h	;* irq input
+B_SDAV	.equ	6		;sound data available bit # (active hi)
+B_SIRQ	.equ	7		;Irq bit #
+SOUNDBIT .equ	0ff00h		;No strobe needed
+TALKPORT .equ	1d00000h	;Port to find this line
+B_WDOG	.equ	4		;(-) For watchdog triggered
+	.elseif	TUNIT
+SOUND	.equ	1c01030h	;Auto strobe
+SOUNDIRQ .equ	1c00050h	;* irq input
+B_SIRQ	.equ	3		;Irq bit #
+SOUNDBIT .equ	0ff00h		;No strobe needed
+	.else
+SOUND	.equ	1e00000h	;Sound I/O; B0-B7=Sound#, B8=Reset (-)
+SOUNDIRQ .equ	SWITCH+10H	;* irq input
+B_SIRQ	.equ	14		;Irq bit #
+SOUNDBIT .equ	0fd00h		;B9=Strobe (-)
+	.endif
+
+SYSCTRL	.equ	1f00000h	;System control latch
+				;BIT 2 - LED select (1)
+				;BIT 4 - AUTO-ERASE ENABLE(0)
+				;BIT 5 - OBJECT PALETTE ENABLE(0)
+				;BIT 6 - CMOS page (YUNIT)
+				;BIT 7 - CMOS page
+IROM	.equ	2000000h	;IMAGE ROM
+ROM	.equ	0ff800000h	;PROGRAM ROM
+
+;System stuff
+AUTOERAS	.equ	10h
+OBJPALET	.equ	20h
+	.if	DEBUG
+SYSCINIT	.equ	0ffb8h	;INITIAL SYSCTRL VALUE
+	.else
+SYSCINIT	.equ	0fff8h	;INITIAL SYSCTRL VALUE
+	.endif
+ERASECOL	.equ	0	;Screen erase color #
+ERASELOC	.equ	COLRAM	;Screen erase color loc
+
+;DMA stuff
+DMAREGS		.equ	1a800c0h	;Bottom of dma registers for mmtm
+
+DMAOFFST	.equ	1a80000h	;DMA offset
+DMACTRL		.equ	1a80010h	;DMA control. BIT 15:
+					;0=DMA IDLE (R), 1=DMA BUSY (R)
+					;0=STOP DMA (W*2), 1=START DMA (W)
+DMAGO		.equ	DMACTRL		;FOR SYSCHECK
+DMASAGL		.equ	1a80020h	;*Data start (low 16 bits)
+DMASAGH		.equ	1a80030h	;*Data start (high 16 bits)
+DMAHORIZ	.equ	1a80040h	;Dest X
+DMAVERT		.equ	1a80050h	;Dest Y
+DMAHSIZE	.equ	1a80060h	;Dest X size
+DMAVSIZE	.equ	1a80070h	;Dest Y size
+DMACMAP		.equ	1a80080h	;Color map select
+DMACONST	.equ	1a80090h	;Constant color
+DMASCALEX	.equ	1a800a0h	;X scale 8:8
+DMASCALEY	.equ	1a800b0h	;Y ^
+DMAWINDOW	.equ	1a800c0h	;Window LR or TB
+DMATEST		.equ	1a800e0h	;?
+DMACONF		.equ	1a800f0h	;Config
+
+;GNP START 1/14/93
+*	LAYOUT OF DMA CONFIG REGISTER
+DMAWIN	.set	20h	; Bit 5	  (0 = rt/lft, 1 = top/bot)
+DMACF4	.SET	10H	; BIT 4	  TIMING PARAMETER
+;GNP END 1/14/93
+
+SECCHIP		.equ	1c00060h	;LOCATION OF SECURITY CHIP JKM 2/13/90
+
+;Bits for the dma control word
+DMAWZ	.equ	8001h		;WRITE ZERO DATA
+DMAWNZ	.equ	8002h		;WRITE NON-ZERO DATA
+DMACZ	.equ	8004h		;WRITE CONSTANT ON ZERO DATA
+DMACNZ	.equ	8008h		;WRITE CONSTANT ON NON-ZERO DATA
+DMAWAL	.equ	8003h		;WRITE BOTH ZERO & NON-ZERO DATA
+DMACAL	.equ	800ch		;WRITE CONSTANT ON BOTH ZERO & NON-ZERO DATA
+
+;IFLAGS bits
+FLIPH_IFB	.equ	14
+SCALE_IFB	.equ	15
+
+;ISIZE	.equ	0
+;ISIZEX	.equ	0
+ISIZEY	.equ	10h
+IANIOFF	.equ	20h
+IANIOFFX .equ	20h
+IANIOFFY .equ	30h
+ISAG	.equ	40h
+ICTRL	.equ	60h
+ICMAP	.equ	70h
+IANI2X	.equ	90h
+IANI2Y	.equ	0a0h
+IANI2Z	.equ	0b0h
+IFLAGS	.equ	0c0h
+IANI3X	.equ	0d0h
+IANI3Y	.equ	0e0h
+IANI3Z	.equ	0f0h
+IANI3ID	.equ	100h
+ICBZ	.equ	110h
+
+W	.equ	0
+L	.equ	1
+
+*SOUND PROCESSOR EQUATES
+NINT	.equ	800H		;SOUND NON-INTERRUPTABLE
+NINTEQ	.equ	400H		;SOUND NON-INTERRUPTABLE BY EQUAL PRIORITY
+CHANNEL	.equ	0F000H
+NOTIME	.equ	4000H
+
+WDOGNUM	.equ	1A2B3C4DH	;"SYSTEM INITIALIZED" MARKER
+
+*FRANIM FLAG MASKS
+FLIPBITS equ	4000H
+NEWPALET equ	2000H
+DELTAXZ	 equ	1000H
+DELTAY	 equ	 800H
+*ANIMATION SCRIPT FLAG BIT POSITIONS
+BFLIPBIT equ	14
+BNEWPAL	 equ	13
+BDELTAXZ equ	12
+BDELTAY	 equ	11
+
+*Palette allocator equates
+
+	.if TUNIT
+;Turmell
+NUMPAL	.equ	48	;Max # pals		;40
+NMFPAL	.equ	48	;# foregnd pals		;40
+NMBPAL	.equ	0	;# backgnd pals
+	.else
+NUMPAL	.equ	16	;Max # pals
+NMFPAL	.equ	16	;# foregnd pals
+NMBPAL	.equ	0	;# backgnd pals
+	.endif
+
+*struct PAL
+PALID	.equ	0	;UHL *palette data
+*endstruct
+
+PALRSIZ	.equ	32	;Size of pal allocation ram
+
+;Palette transfer ram
+PLDCNT	.equ	0	;# colors
+PALSRC	.equ	10h	;* palette color data
+PALDEST	.equ	30h	;Destination palette|Start color
+PALTSIZ	.equ	40h	;Size of each cell
+NUMPALT	.equ	48	;# of transfers allowed		;40
+
+
